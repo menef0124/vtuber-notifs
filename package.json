@@ -1,0 +1,25 @@
+{
+  "name": "vtuber-notifs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/menef0124/vtuber-notifs.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/menef0124/vtuber-notifs/issues"
+  },
+  "homepage": "https://github.com/menef0124/vtuber-notifs#readme",
+  "dependencies": {
+    "discord.js": "^13.8.1",
+    "dotenv": "^16.0.1",
+    "typescript": "^4.7.4"
+  }
+}
