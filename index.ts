@@ -19,10 +19,8 @@ client.on('ready', () => {
 });
 
 client.on('messageCreate', (msg) => {
-    if(msg.content == 'ping'){
-        msg.reply({
-            content:"pong"
-        })
+    if(msg.content === `${PREFIX}ping`){
+        msg.channel.send(`🏓Latency is ${Date.now() - msg.createdTimestamp}ms. API Latency is ${Math.round(client.ws.ping)}ms`);
     }
 });
 
