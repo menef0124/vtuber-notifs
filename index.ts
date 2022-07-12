@@ -21,6 +21,10 @@ client.on('ready', () => {
 });
 
 client.on('messageCreate', (msg) => {
+    if(msg.author.bot){
+        return;
+    }
+
     //Ping command
     if(msg.content.toLowerCase() === `${PREFIX}ping`){
         msg.channel.send(`🏓Latency is ${Date.now() - msg.createdTimestamp}ms. API Latency is ${Math.round(client.ws.ping)}ms`);
