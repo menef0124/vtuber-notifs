@@ -5,6 +5,8 @@ dotenv.config();
 
 const PREFIX = '$';
 
+let hiCount = 0;
+
 const client = new discord.Client({
     intents:[
         Intents.FLAGS.GUILDS,
@@ -19,8 +21,21 @@ client.on('ready', () => {
 });
 
 client.on('messageCreate', (msg) => {
-    if(msg.content === `${PREFIX}ping`){
+    //Ping command
+    if(msg.content.toLowerCase() === `${PREFIX}ping`){
         msg.channel.send(`🏓Latency is ${Date.now() - msg.createdTimestamp}ms. API Latency is ${Math.round(client.ws.ping)}ms`);
+    }
+
+    //Silly hi if hi is sent 3 times
+    if(msg.content.toLowerCase() === 'hi'){
+        hiCount++;
+        if(hiCount >= 3){
+            msg.channel.send("hi :)");
+            hiCount = 0;
+        }
+    }
+    if(msg.content.toLowerCase() !== 'hi'){
+        hiCount = 0;
     }
 });
 
