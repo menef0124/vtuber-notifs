@@ -25,6 +25,10 @@ client.on('messageCreate', (msg) => {
         return;
     }
 
+    if(msg.content.toLowerCase() === 'ping'){
+        msg.reply("pong");
+    }
+
     //Ping command
     if(msg.content.toLowerCase() === `${PREFIX}ping`){
         msg.channel.send(`🏓Latency is ${Date.now() - msg.createdTimestamp}ms. API Latency is ${Math.round(client.ws.ping)}ms`);
@@ -32,16 +36,13 @@ client.on('messageCreate', (msg) => {
 
     //Silly hi if hi is sent 3 times
     if(msg.content.toLowerCase() == 'hi'){
-        console.log('hi detected');
         hiCount++;
         if(hiCount >= 3){
-            console.log("should send hi");
             msg.channel.send("hi :)");
             hiCount = 0;
         }
     }
     if(msg.content.toLowerCase() != 'hi'){
-        console.log('non-hi detected');
         hiCount = 0;
     }
 });
