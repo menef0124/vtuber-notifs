@@ -12,7 +12,7 @@ export type Livestream = {
 let streamList: Livestream[] = [];
 
 const PREFIX: string = '$';
-const POLLING_TIMER: number = 5000;//600000; //milliseconds
+const POLLING_TIMER: number = 600000; //milliseconds
 
 let hiCount = 0;
 
