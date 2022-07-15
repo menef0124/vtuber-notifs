@@ -20,8 +20,13 @@
   "dependencies": {
     "discord.js": "^13.8.1",
     "dotenv": "^16.0.1",
-    "ts-node": "^10.8.2",
+    "sqlite": "^4.1.1",
+    "sqlite3": "^5.0.9",
+    "ts-node": "^10.9.1",
     "tsc-node": "^0.0.3",
     "typescript": "^4.7.4"
+  },
+  "devDependencies": {
+    "@types/sqlite3": "^3.1.8"
   }
 }

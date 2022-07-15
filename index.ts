@@ -2,14 +2,27 @@ import * as discord from 'discord.js';
 import { Intents } from 'discord.js';
 import * as dotenv from 'dotenv';
 import { pollStreams } from './polling';
+import * as sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
 dotenv.config();
 
+let db: any;
+(async () => {
+    // open the database
+    db = await open({
+      filename: './vtubers.sqlite',
+      driver: sqlite3.Database
+    });
+})();
+
 export type Livestream = {
-    roleId: "string",
-    streamUrl: "string"
+    name: string
+    roleId: string,
+    streamUrl: string,
+    stillLive: boolean
 };
 
-let streamList: Livestream[] = [];
+let mentionList: Livestream[] = [];
 
 const PREFIX: string = '$';
 const POLLING_TIMER: number = 600000; //milliseconds
@@ -27,12 +40,14 @@ const client = new discord.Client({
 
 client.on('ready', () => {
     console.log("Bot is up");
-    let interval = setInterval( () => {
-        streamList = pollStreams();
+    const notifsChannel = "996167357313601607";
+    //const testChannel = "995890408846536796";
+    let interval = setInterval( async () => {
+        let streamList = await pollStreams();
         for(let i = 0; i < streamList.length; i++){
-            (client.channels.cache.get("996167357313601607") as discord.TextChannel).send(`<@&${streamList[i].roleId}> ` + `${streamList[i].streamUrl}`);
+            console.log(i);
+            //(client.channels.cache.get(notifsChannel) as discord.TextChannel).send(`<@&${streamList[i].roleId}> ` + `${streamList[i].name} is live!\n${streamList[i].streamUrl}`);
         }
-        //(client.channels.cache.get("996167357313601607") as discord.TextChannel).send("<@&996968087880478751> " + "https://www.youtube.com/watch?v=v6X43Mv1Q3Q");
     }, POLLING_TIMER);
 });
 
