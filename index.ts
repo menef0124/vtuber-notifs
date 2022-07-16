@@ -48,7 +48,7 @@ client.on('ready', () => {
             let members: string[] = streamList[i].members.split(',');
             let pings: string = "";
             for (let j = 0; j < members.length; j++) {
-                pings += `<@&${members[j]}> `;
+                pings += `<@${members[j]}> `;
             }
             (client.channels.cache.get(notifsChannel) as discord.TextChannel).send(pings + `${streamList[i].name} is live!\n${streamList[i].streamUrl}`);
         }
