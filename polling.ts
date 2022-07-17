@@ -54,7 +54,7 @@ export async function pollStreams(): Promise<Livestream[]> {
                 if (isLive && status == 1) {
                     console.log(`${streams[i].name} is online`);
                 }
-                if (isLive) {
+                if (!isLive) {
                     console.log(`${streams[i].name} is offline`);
                     sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
                     db.run(sql, [0, streams[i].name]);
