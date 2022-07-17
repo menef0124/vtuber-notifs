@@ -2,11 +2,12 @@ import * as discord from 'discord.js';
 import { Intents, MessageEmbed } from 'discord.js';
 import * as dotenv from 'dotenv';
 import { pollStreams } from './polling';
+import { getStreamStatuses } from './status'
 import * as sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 dotenv.config();
 
-let db: any;
+export let db: any;
 (async () => {
     // open the database
     db = await open({
@@ -58,7 +59,7 @@ client.on('ready', () => {
                 pings += `<@${members[j]}> `;
             }
             //Pings the user with the livestream link
-            (client.channels.cache.get(notifsChannel) as discord.TextChannel).send(pings + `${streamList[i].name} is live!\n${streamList[i].streamUrl}`);
+            //(client.channels.cache.get(notifsChannel) as discord.TextChannel).send(pings + `${streamList[i].name} is live!\n${streamList[i].streamUrl}`);
         }
     }, POLLING_TIMER);
 });
@@ -78,6 +79,11 @@ client.on('messageCreate', async (msg) => {
         //Ping command
         if (msg.content.toLowerCase() === `${PREFIX}ping`) {
             msg.channel.send(`🏓Latency is ${Date.now() - msg.createdTimestamp}ms. API Latency is ${Math.round(client.ws.ping)}ms`);
+        }
+
+        //Status command that lists the streaming status of all streams the that user has opted into notifs for
+        if(msg.content.toLowerCase() === `${PREFIX}status` || msg.content.toLowerCase() === `${PREFIX}s`){
+            msg.channel.send(await getStreamStatuses(msg.author.id));
         }
 
         //Add command that opts you into getting notifications whenever the selected streamer is live

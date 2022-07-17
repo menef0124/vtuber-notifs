@@ -1,17 +1,6 @@
-import { Livestream } from "./index";
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import { Livestream, db } from "./index";
 import fetch from "node-fetch";
 import { parse } from 'node-html-parser';
-
-let db: any;
-(async () => {
-    // open the database
-    db = await open({
-        filename: './vtubers.sqlite',
-        driver: sqlite3.Database
-    });
-})();
 
 //Used in confirming if a stream is live or a waiting room
 const EXPECTED_START = "var ytInitialPlayerResponse = ";
