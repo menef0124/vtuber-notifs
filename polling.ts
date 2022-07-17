@@ -23,22 +23,42 @@ export async function pollStreams(): Promise<Livestream[]> {
     streams = await db.all(sql);
     for (let i = 0; i < streams.length; i++) {
         let status = streams[i].stillLive;
+        let platform = streams[i].platform;
         try {
             const res = await fetch(streams[i].streamUrl);
-            const ytHtml = await res.text();
-            if (checkIfLive(ytHtml) && status == 0) {
-                console.log(`${streams[i].name} is now live!`);
-                sql = "UPDATE streams SET stillLive = ? WHERE id = ?";
-                db.run(sql, [1, i + 1])
-                streamsToReturn.push(streams[i]);
+            if (platform == "youtube") {
+                const ytHtml = await res.text();
+                if (checkIfLive(ytHtml, platform) && status == 0) {
+                    console.log(`${streams[i].name} is now live!`);
+                    sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
+                    db.run(sql, [1, streams[i].name])
+                    streamsToReturn.push(streams[i]);
+                }
+                if (checkIfLive(ytHtml, platform) && status == 1) {
+                    console.log(`${streams[i].name} is online`);
+                }
+                if (!checkIfLive(ytHtml, platform)) {
+                    console.log(`${streams[i].name} is offline`);
+                    sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
+                    db.run(sql, [0, streams[i].name]);
+                }
             }
-            if (checkIfLive(ytHtml) && status == 1) {
-                console.log(`${streams[i].name} is online`);
-            }
-            if (!checkIfLive(ytHtml)) {
-                console.log(`${streams[i].name} is offline`);
-                sql = "UPDATE streams SET stillLive = ? WHERE id = ?";
-                db.run(sql, [0, i + 1]);
+            if (platform == "twitch") {
+                let isLive = (await res.text()).includes('isLiveBroadcast');
+                if (isLive && status == 0) {
+                    console.log(`${streams[i].name} is now live!`);
+                    sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
+                    db.run(sql, [1, streams[i].name])
+                    streamsToReturn.push(streams[i]);
+                }
+                if (isLive && status == 1) {
+                    console.log(`${streams[i].name} is online`);
+                }
+                if (isLive) {
+                    console.log(`${streams[i].name} is offline`);
+                    sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
+                    db.run(sql, [0, streams[i].name]);
+                }
             }
         }
         catch (e) {
@@ -50,7 +70,7 @@ export async function pollStreams(): Promise<Livestream[]> {
     return streamsToReturn;
 }
 
-function checkIfLive(html: string): boolean {
+function checkIfLive(html: string, plat: string): boolean {
     const dom = parse(html, {
         blockTextElements: {
             script: true,

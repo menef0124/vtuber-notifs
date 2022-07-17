@@ -17,6 +17,7 @@ let db: any;
 
 export type Livestream = {
     name: string,
+    platform: string
     streamUrl: string,
     members: string,
     stillLive: number
