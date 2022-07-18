@@ -123,7 +123,7 @@ client.on('messageCreate', async (msg) => {
                                 sql = "UPDATE streams SET members = ? WHERE name = ?";
                                 db.run(sql, [members, streamName]);
 
-                                //Confirmation email that the add command worked
+                                //Confirmation message that the add command worked
                                 msg.channel.send("✅ Success! You will now get pings whenever " + streamName + " is live!");
                             }
                             //If author's user id is found in the selected stream's list of members already
@@ -141,6 +141,58 @@ client.on('messageCreate', async (msg) => {
             });
         }
 
+        //Remove command that opts the user out of notifications from a streamer
+        if (msg.content.toLowerCase() === `${PREFIX}remove` || msg.content.toLowerCase() === `${PREFIX}r`){
+            let sql = "SELECT name, members FROM streams WHERE members like '%' || ? || '%'"; //Only selects streams that the user is getting notifications from
+            let streams = await db.all(sql, [msg.author.id]);
+
+            //Begin building prompt
+            let prompt = "Reply with which stream you'd like to opt out of notifications for:\n";
+
+            for(let i = 0; i < streams.length; i++){
+                prompt += '`' + (i+1) + '` - ' + streams[i].name + '\n';
+            }
+
+            let filter = (m: any) => m.author.id === msg.author.id;
+
+            //Sends prompt then waits for the next input from the user
+            msg.channel.send(prompt).then(() => {
+                msg.channel.awaitMessages({ filter: filter, max: 1, time: 30000, errors: ['time'] }).then(async (selected) => {
+                    //Gets inputted number 
+                    let selection = selected.first()?.content;
+                    if (typeof (selection) !== "undefined") {
+                        //Only allows input that's within the number of streams in the user's subscriptions
+                        let streamName = (parseInt(selection) - 1) < streams.length ? streams[parseInt(selection) - 1].name : null;
+
+                        //If the input matches up with any of the streamers
+                        if (streamName) {
+                            sql = "SELECT members FROM streams WHERE name = ?"
+                            let members = await db.all(sql, [streamName]);
+                            let memArr = members[0].members.split(','); //Splits up the array to be able to remove members from the array
+                            //If the author's id number is already opted in to the selected stream
+                            if (memArr.includes(msg.author.id)) {
+                                members = memArr.filter((mem: string) => mem != msg.author.id).join(','); //Removes member from list then turns array back into a comma-separated list
+                                //Updates members list in the db
+                                sql = "UPDATE streams SET members = ? WHERE name = ?";
+                                db.run(sql, [members, streamName]);
+
+                                //Confirmation message that the remove command worked
+                                msg.channel.send("✅ Success! You will no longer get any pings whenever " + streamName + " is live!");
+                            }
+                            //If author's user id is found in the selected stream's list of members already
+                            else {
+                                msg.channel.send("Invalid input!");
+                            }
+
+                        }
+                        else {
+                            //If input is not in the range of the number of 
+                            msg.channel.send("Invalid input!");
+                        }
+                    }
+                });
+            });
+        }
 
         //Silly commands
         if (msg.content.toLowerCase() === 'ping') {
