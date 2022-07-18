@@ -53,13 +53,15 @@ client.on('ready', () => {
         //Iterates through that list of streams 
         for (let i = 0; i < streamList.length; i++) {
             let members: string[] = streamList[i].members.split(','); //Gets the list of members that should be pinged 
+            if (members.length == 0)
+                continue;
             let pings: string = "";
             //Adds the ping strings
             for (let j = 0; j < members.length; j++) {
                 pings += `<@${members[j]}> `;
             }
             //Pings the user with the livestream link
-            (client.channels.cache.get(notifsChannel) as discord.TextChannel).send(pings + `${streamList[i].name} is live!\n${streamList[i].streamUrl}`);
+            //(client.channels.cache.get(notifsChannel) as discord.TextChannel).send(pings + `${streamList[i].name} is live!\n${streamList[i].streamUrl}`);
         }
     }, POLLING_TIMER);
 });
@@ -82,7 +84,7 @@ client.on('messageCreate', async (msg) => {
         }
 
         //Status command that lists the streaming status of all streams the that user has opted into notifs for
-        if(msg.content.toLowerCase() === `${PREFIX}status` || msg.content.toLowerCase() === `${PREFIX}s`){
+        if (msg.content.toLowerCase() === `${PREFIX}status` || msg.content.toLowerCase() === `${PREFIX}s`) {
             msg.channel.send(await getStreamStatuses(msg.author.id));
         }
 
@@ -116,8 +118,15 @@ client.on('messageCreate', async (msg) => {
                             let memArr = members[0].members.split(','); //Splits up the array to be able to add members to the array
                             //If the author's id number isn't already opted in to the selected stream
                             if (!memArr.includes(msg.author.id)) {
-                                memArr.push(msg.author.id);
+                                if(memArr[0] == ""){
+                                    memArr[0] = msg.author.id;
+                                }
+                                else{
+                                    memArr.push(msg.author.id);
+                                }
+                                console.log("memArr:", memArr);
                                 members = memArr.join(','); //Turns array back into a comma-separated list
+                                console.log("members", members);
 
                                 //Updates members list in the db
                                 sql = "UPDATE streams SET members = ? WHERE name = ?";
@@ -142,15 +151,15 @@ client.on('messageCreate', async (msg) => {
         }
 
         //Remove command that opts the user out of notifications from a streamer
-        if (msg.content.toLowerCase() === `${PREFIX}remove` || msg.content.toLowerCase() === `${PREFIX}r`){
+        if (msg.content.toLowerCase() === `${PREFIX}remove` || msg.content.toLowerCase() === `${PREFIX}r`) {
             let sql = "SELECT name, members FROM streams WHERE members like '%' || ? || '%'"; //Only selects streams that the user is getting notifications from
             let streams = await db.all(sql, [msg.author.id]);
 
             //Begin building prompt
             let prompt = "Reply with which stream you'd like to opt out of notifications for:\n";
 
-            for(let i = 0; i < streams.length; i++){
-                prompt += '`' + (i+1) + '` - ' + streams[i].name + '\n';
+            for (let i = 0; i < streams.length; i++) {
+                prompt += '`' + (i + 1) + '` - ' + streams[i].name + '\n';
             }
 
             let filter = (m: any) => m.author.id === msg.author.id;
@@ -172,12 +181,18 @@ client.on('messageCreate', async (msg) => {
                             //If the author's id number is already opted in to the selected stream
                             if (memArr.includes(msg.author.id)) {
                                 members = memArr.filter((mem: string) => mem != msg.author.id).join(','); //Removes member from list then turns array back into a comma-separated list
-                                //Updates members list in the db
-                                sql = "UPDATE streams SET members = ? WHERE name = ?";
-                                db.run(sql, [members, streamName]);
-
-                                //Confirmation message that the remove command worked
-                                msg.channel.send("✅ Success! You will no longer get any pings whenever " + streamName + " is live!");
+                                if (members != "") {
+                                    //Updates members list in the db
+                                    sql = "UPDATE streams SET members = ? WHERE name = ?";
+                                    db.run(sql, [members, streamName]);
+                                    //Confirmation message that the remove command worked
+                                    msg.channel.send("✅ Success! You will no longer get any pings whenever " + streamName + " is live!");
+                                }
+                                else {
+                                    sql = "UPDATE streams SET members = ? WHERE name = ?";
+                                    db.run(sql, [members, streamName]);
+                                    msg.channel.send("✅ Success! You will no longer get any pings whenever " + streamName + " is live!\nAll members have opted out of pings for " + streamName + ", no longer sending pings for their stream.");
+                                }
                             }
                             //If author's user id is found in the selected stream's list of members already
                             else {

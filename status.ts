@@ -1,6 +1,6 @@
 import { Livestream, db } from "./index";
 
-export async function getStreamStatuses(userId: string): Promise<string>{
+export async function getStreamStatuses(userId: string): Promise<string> {
     //Gets all streams that user is opted into
     let sql = "SELECT * FROM streams WHERE members like '%' || ? || '%'";
     let optedStreams = await db.all(sql, [userId]);
@@ -9,12 +9,12 @@ export async function getStreamStatuses(userId: string): Promise<string>{
     let res = "Current status of your streams:\n";
 
     //Outputs the name then adds if they are live or not
-    for(let i = 0; i < optedStreams.length; i++){
+    for (let i = 0; i < optedStreams.length; i++) {
         res += optedStreams[i].name + " - ";
-        if(optedStreams[i].stillLive == 1){
+        if (optedStreams[i].stillLive == 1) {
             res += "Live\n";
         }
-        else{
+        else {
             res += "Offline\n"
         }
     }
