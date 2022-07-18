@@ -61,7 +61,7 @@ client.on('ready', () => {
                 pings += `<@${members[j]}> `;
             }
             //Pings the user with the livestream link
-            (client.channels.cache.get(notifsChannel) as discord.TextChannel).send(pings + `${streamList[i].name} is live!\n${streamList[i].streamUrl}`);
+            //(client.channels.cache.get(notifsChannel) as discord.TextChannel).send(pings + `${streamList[i].name} is live!\n${streamList[i].streamUrl}`);
         }
     }, POLLING_TIMER);
 });
@@ -243,6 +243,9 @@ client.on('messageCreate', async (msg) => {
         }
         if (msg.content.toLowerCase() != 'hi') {
             hiCount = 0;
+        }
+        if(msg.mentions.has(client.user!)){
+            msg.reply({files:["./static/2.jpg"]});
         }
     }
 
