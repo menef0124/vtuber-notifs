@@ -61,7 +61,7 @@ client.on('ready', () => {
                 pings += `<@${members[j]}> `;
             }
             //Pings the user with the livestream link
-            //(client.channels.cache.get(notifsChannel) as discord.TextChannel).send(pings + `${streamList[i].name} is live!\n${streamList[i].streamUrl}`);
+            (client.channels.cache.get(notifsChannel) as discord.TextChannel).send(pings + `${streamList[i].name} is live!\n${streamList[i].streamUrl}`);
         }
     }, POLLING_TIMER);
 });
@@ -95,7 +95,7 @@ client.on('messageCreate', async (msg) => {
             const streamNames = await db.all(sql);
 
             //Generates input prompt
-            let prompt = "Reply with the selection that you'd like to get notifications from:\n";
+            let prompt = "Reply with the selection that you'd like to get notifications from:\n`0` - Add new stream!\n";
             for (let i = 0; i < streamNames.length; i++) {
                 prompt += "`" + (i + 1) + "` - " + streamNames[i].name + "\n";
             }
@@ -104,46 +104,67 @@ client.on('messageCreate', async (msg) => {
             let filter = (m: any) => m.author.id === msg.author.id;
 
             msg.channel.send(prompt).then(() => {
-                msg.channel.awaitMessages({ filter: filter, max: 1, time: 30000, errors: ['time'] }).then(async (selected) => {
+                msg.channel.awaitMessages({ filter: filter, max: 1, time: 60000, errors: ['time'] }).then(async (selected) => {
                     //Gets inputted number 
                     let selection = selected.first()?.content;
                     if (typeof (selection) !== "undefined") {
-                        //Only allows input that's within the number of streams in the db
-                        let streamName = (parseInt(selection) - 1) < streamNames.length ? streamNames[parseInt(selection) - 1].name : null;
+                        if(selection == "0"){
+                            msg.channel.send("What's the name of the streamer?").then(() => {
+                                msg.channel.awaitMessages({filter: filter, max: 1, time: 60000, errors: ['time']}).then(async (name) => {
+                                    let streamer = name.first()?.content;
+                                    if(typeof(streamer) !== "undefined"){
+                                        msg.channel.send("What's their stream URL?\n(For YouTube, the url format is https://www.youtube.com/channel/<channelID>/live and for Twitch it's https://www.twitch.tv/<channelName>").then(() => {
+                                            msg.channel.awaitMessages({filter: filter, max: 1, time:60000, errors: ['time']}).then(async (url) => {
+                                                let platform = url.first()?.content.includes("youtube") ? "youtube" : "twitch";
+                                                let streamUrl = url.first()?.content;
+                                                let sql = "INSERT INTO streams(name,platform,streamUrl,members,stillLive) VALUES (?,?,?,?,0)";
+                                                db.run(sql, [streamer, platform, streamUrl, msg.author.id]);
+                                                msg.channel.send("✅ Success! " + streamer + " has been added and you will now get pings whenever they go live!");
 
-                        //If the input matches up with any of the streamers
-                        if (streamName) {
-                            let sql = "SELECT members FROM streams WHERE name = ?"
-                            let members = await db.all(sql, [streamName]);
-                            let memArr = members[0].members.split(','); //Splits up the array to be able to add members to the array
-                            //If the author's id number isn't already opted in to the selected stream
-                            if (!memArr.includes(msg.author.id)) {
-                                if(memArr[0] == ""){
-                                    memArr[0] = msg.author.id;
-                                }
-                                else{
-                                    memArr.push(msg.author.id);
-                                }
-                                console.log("memArr:", memArr);
-                                members = memArr.join(','); //Turns array back into a comma-separated list
-                                console.log("members", members);
-
-                                //Updates members list in the db
-                                sql = "UPDATE streams SET members = ? WHERE name = ?";
-                                db.run(sql, [members, streamName]);
-
-                                //Confirmation message that the add command worked
-                                msg.channel.send("✅ Success! You will now get pings whenever " + streamName + " is live!");
-                            }
-                            //If author's user id is found in the selected stream's list of members already
-                            else {
-                                msg.channel.send("Silly goose you're already getting notifications for that stream smh");
-                            }
-
+                                            });
+                                        });
+                                    }
+                                });
+                            });
                         }
-                        else {
-                            //If input is not in the range of the number of 
-                            msg.channel.send("Invalid input!");
+                        else{
+                            //Only allows input that's within the number of streams in the db
+                            let streamName = (parseInt(selection) - 1) < streamNames.length ? streamNames[parseInt(selection) - 1].name : null;
+    
+                            //If the input matches up with any of the streamers
+                            if (streamName) {
+                                let sql = "SELECT members FROM streams WHERE name = ?"
+                                let members = await db.all(sql, [streamName]);
+                                let memArr = members[0].members.split(','); //Splits up the array to be able to add members to the array
+                                //If the author's id number isn't already opted in to the selected stream
+                                if (!memArr.includes(msg.author.id)) {
+                                    if(memArr[0] == ""){
+                                        memArr[0] = msg.author.id;
+                                    }
+                                    else{
+                                        memArr.push(msg.author.id);
+                                    }
+                                    console.log("memArr:", memArr);
+                                    members = memArr.join(','); //Turns array back into a comma-separated list
+                                    console.log("members", members);
+    
+                                    //Updates members list in the db
+                                    sql = "UPDATE streams SET members = ? WHERE name = ?";
+                                    db.run(sql, [members, streamName]);
+    
+                                    //Confirmation message that the add command worked
+                                    msg.channel.send("✅ Success! You will now get pings whenever " + streamName + " is live!");
+                                }
+                                //If author's user id is found in the selected stream's list of members already
+                                else {
+                                    msg.channel.send("Silly goose you're already getting notifications for that stream smh");
+                                }
+    
+                            }
+                            else {
+                                //If input is not in the range of the number of 
+                                msg.channel.send("Invalid input!");
+                            }
                         }
                     }
                 });
