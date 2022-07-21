@@ -68,19 +68,25 @@ client.on('ready', () => {
 
 //Whenever a user sends a message
 client.on('messageCreate', async (msg) => {
+    //Ignore any messages that are from the bot
+    if (msg.author.bot) {
+        return;
+    }
+
     //Ignore any messages not sent to the correct channels
     if (msg.channelId != "998203253558878228" && msg.channelId != "995890408846536796") {
         return;
     }
     else {
-        //Ignore any messages that are from the bot
-        if (msg.author.bot) {
-            return;
-        }
 
         //Ping command
         if (msg.content.toLowerCase() === `${PREFIX}ping`) {
             msg.channel.send(`🏓Latency is ${Date.now() - msg.createdTimestamp}ms. API Latency is ${Math.round(client.ws.ping)}ms`);
+        }
+
+        //Help command for displaying all of the available commands
+        if(msg.content.toLowerCase() === `${PREFIX}help` || msg.content.toLowerCase() === `${PREFIX}h`){
+            msg.reply("Prefix for all commands: `$`\n`status` or `s` - Displays all streams that you're opted into notifications for.\n`add` or `a` - Lists all streamers in the database to opt into notifications for. You can also add new streams to the database.\n`remove` or `r` - Allows you to select a streamer to opt out of notifications for.");
         }
 
         //Status command that lists the streaming status of all streams the that user has opted into notifs for
@@ -234,19 +240,22 @@ client.on('messageCreate', async (msg) => {
         if (msg.content.toLowerCase() === 'ping') {
             msg.reply("pong");
         }
-        if (msg.content.toLowerCase() == 'hi') {
-            hiCount++;
-            if (hiCount >= 3) {
-                msg.channel.send("hi :)");
-                hiCount = 0;
-            }
-        }
-        if (msg.content.toLowerCase() != 'hi') {
+
+    }
+
+    //More silly commands
+    if (msg.content.toLowerCase() == 'hi') {
+        hiCount++;
+        if (hiCount >= 3) {
+            msg.channel.send("hi :)");
             hiCount = 0;
         }
-        if(msg.mentions.has(client.user!)){
-            msg.reply({files:["./static/2.jpg"]});
-        }
+    }
+    if (msg.content.toLowerCase() != 'hi') {
+        hiCount = 0;
+    }
+    if(msg.mentions.has(client.user!)){
+        msg.reply({files:["./static/2.jpg"]});
     }
 
 });
