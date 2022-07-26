@@ -53,13 +53,15 @@ client.on('ready', () => {
         //Iterates through that list of streams 
         for (let i = 0; i < streamList.length; i++) {
             let members: string[] = streamList[i].members.split(','); //Gets the list of members that should be pinged 
-            if (members.length == 0)
+            console.log(members);
+            if (members.length == 0 || members[0] == '')
                 continue;
             let pings: string = "";
             //Adds the ping strings
             for (let j = 0; j < members.length; j++) {
                 pings += `<@${members[j]}> `;
             }
+            console.log(pings);
             //Pings the user with the livestream link
             (client.channels.cache.get(notifsChannel) as discord.TextChannel).send(pings + `${streamList[i].name} is live!\n${streamList[i].streamUrl}`);
         }
@@ -86,7 +88,7 @@ client.on('messageCreate', async (msg) => {
 
         //Help command for displaying all of the available commands
         if(msg.content.toLowerCase() === `${PREFIX}help` || msg.content.toLowerCase() === `${PREFIX}h`){
-            msg.reply("Prefix for all commands: `$`\n`status` or `s` - Displays all streams that you're opted into notifications for.\n`add` or `a` - Lists all streamers in the database to opt into notifications for. You can also add new streams to the database.\n`remove` or `r` - Allows you to select a streamer to opt out of notifications for.");
+            msg.reply("Prefix for all commands: `$`\n`status` or `s` - Displays all streams that you're opted into notifications for.\n`add` or `a`(Disabled atm) - Lists all streamers in the database to opt into notifications for. You can also add new streams to the database.\n`remove` or `r`(Disbaled atm) - Allows you to select a streamer to opt out of notifications for.");
         }
 
         //Status command that lists the streaming status of all streams the that user has opted into notifs for
@@ -94,6 +96,7 @@ client.on('messageCreate', async (msg) => {
             msg.channel.send(await getStreamStatuses(msg.author.id));
         }
 
+/*
         //Add command that opts you into getting notifications whenever the selected streamer is live
         if (msg.content.toLowerCase() === `${PREFIX}add` || msg.content.toLowerCase() === `${PREFIX}a`) {
             //Gets the names of all streams in the DB
@@ -235,6 +238,7 @@ client.on('messageCreate', async (msg) => {
                 });
             });
         }
+*/
 
         //Silly commands
         if (msg.content.toLowerCase() === 'ping') {
