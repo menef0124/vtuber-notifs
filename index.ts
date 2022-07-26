@@ -54,7 +54,6 @@ client.on('ready', () => {
         //Iterates through that list of streams 
         for (let i = 0; i < streamList.length; i++) {
             let members: string[] = streamList[i].members.split(','); //Gets the list of members that should be pinged 
-            console.log(members);
             if (members.length == 0 || members[0] == '')
                 continue;
             let pings: string = "";
@@ -62,7 +61,6 @@ client.on('ready', () => {
             for (let j = 0; j < members.length; j++) {
                 pings += `<@${members[j]}> `;
             }
-            console.log(pings);
             //Pings the user with the livestream link
             (client.channels.cache.get(notifsChannel) as discord.TextChannel).send(pings + `${streamList[i].name} is live!\n${streamList[i].streamUrl}`);
         }
