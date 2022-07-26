@@ -21,7 +21,8 @@ export type Livestream = {
     platform: string
     streamUrl: string,
     members: string,
-    stillLive: number
+    stillLive: number,
+    lastPingTime: number
 };
 
 let mentionList: Livestream[] = [];
