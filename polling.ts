@@ -27,7 +27,7 @@ export async function pollStreams(): Promise<Livestream[]> {
                 if (checkIfLive(ytHtml) && status == 0 && ((new Date().getTime()) - timeSincePing >= 3600000)) {
                     console.log(`${streams[i].name} is now live!`);
                     sql = "UPDATE streams SET stillLive = ?, lastPingTime = ? WHERE name = ?";
-                    db.run(sql, [1, (new Date().getTime()), streams[i].name])
+                    db.run(sql, [1, (new Date().getTime()), streams[i].name]);
                     streamsToReturn.push(streams[i]);
                 }
                 //If the stream ping was already sent out and the stream is still going
@@ -46,10 +46,10 @@ export async function pollStreams(): Promise<Livestream[]> {
                 //Twitch's HTML response for a channel already comes with a variable that Twitch only returns if that channel is live
                 let isLive = (await res.text()).includes('isLiveBroadcast');
                 //If stream just went live
-                if (isLive && status == 0) {
+                if (isLive && status == 0 && ((new Date().getTime()) - timeSincePing >= 3600000)) {
                     console.log(`${streams[i].name} is now live!`);
-                    sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
-                    db.run(sql, [1, streams[i].name])
+                    sql = "UPDATE streams SET stillLive = ?, lastPingTime = ? WHERE name = ?";
+                    db.run(sql, [1, (new Date().getTime()), streams[i].name]);
                     streamsToReturn.push(streams[i]);
                 }
                 //If stream is still live and the ping was already sent out
