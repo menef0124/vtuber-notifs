@@ -21,10 +21,10 @@ export async function pollStreams(): Promise<Livestream[]> {
             //Get HTML reponse that's returned by the stream URL
             const res = await fetch(streams[i].streamUrl);
             //YouTube streams only
-            if (platform == "youtube") {
+            if (platform == "youtube" && ((new Date().getTime()) - timeSincePing >= 3600000)) {
                 const ytHtml = await res.text();
                 //If the stream just went live
-                if (checkIfLive(ytHtml) && status == 0 && ((new Date().getTime()) - timeSincePing >= 3600000)) {
+                if (checkIfLive(ytHtml) && status == 0) {
                     console.log(`${streams[i].name} is now live!`);
                     sql = "UPDATE streams SET stillLive = ?, lastPingTime = ? WHERE name = ?";
                     db.run(sql, [1, (new Date().getTime()), streams[i].name]);
@@ -42,11 +42,11 @@ export async function pollStreams(): Promise<Livestream[]> {
                 }
             }
             //Twitch streams only
-            if (platform == "twitch") {
+            if (platform == "twitch" && ((new Date().getTime()) - timeSincePing >= 3600000)) {
                 //Twitch's HTML response for a channel already comes with a variable that Twitch only returns if that channel is live
                 let isLive = (await res.text()).includes('isLiveBroadcast');
                 //If stream just went live
-                if (isLive && status == 0 && ((new Date().getTime()) - timeSincePing >= 3600000)) {
+                if (isLive && status == 0) {
                     console.log(`${streams[i].name} is now live!`);
                     sql = "UPDATE streams SET stillLive = ?, lastPingTime = ? WHERE name = ?";
                     db.run(sql, [1, (new Date().getTime()), streams[i].name]);
