@@ -10,7 +10,9 @@ let streams: Livestream[] = [];
 export async function pollStreams(): Promise<Livestream[]> {
     let streamsToReturn: Livestream[] = [];
     let sql = 'SELECT * FROM streams';
-    streams = await db.all(sql);
+    let tmp = await db.execute(sql);
+    streams = tmp[0];
+    console.log(streams);
 
     //Iterates through entire database
     for (let i = 0; i < streams.length; i++) {
@@ -27,7 +29,7 @@ export async function pollStreams(): Promise<Livestream[]> {
                 if (checkIfLive(ytHtml) && status == 0) {
                     console.log(`${streams[i].name} is now live!`);
                     sql = "UPDATE streams SET stillLive = ?, lastPingTime = ? WHERE name = ?";
-                    db.run(sql, [1, (new Date().getTime()), streams[i].name]);
+                    db.execute(sql, [1, (new Date().getTime()), streams[i].name]);
                     streamsToReturn.push(streams[i]);
                 }
                 //If the stream ping was already sent out and the stream is still going
@@ -38,7 +40,7 @@ export async function pollStreams(): Promise<Livestream[]> {
                 if (!checkIfLive(ytHtml)) {
                     console.log(`${streams[i].name} is offline`);
                     sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
-                    db.run(sql, [0, streams[i].name]);
+                    db.execute(sql, [0, streams[i].name]);
                 }
             }
             //Twitch streams only
@@ -49,7 +51,7 @@ export async function pollStreams(): Promise<Livestream[]> {
                 if (isLive && status == 0) {
                     console.log(`${streams[i].name} is now live!`);
                     sql = "UPDATE streams SET stillLive = ?, lastPingTime = ? WHERE name = ?";
-                    db.run(sql, [1, (new Date().getTime()), streams[i].name]);
+                    db.execute(sql, [1, (new Date().getTime()), streams[i].name]);
                     streamsToReturn.push(streams[i]);
                 }
                 //If stream is still live and the ping was already sent out
@@ -60,7 +62,7 @@ export async function pollStreams(): Promise<Livestream[]> {
                 if (!isLive) {
                     console.log(`${streams[i].name} is offline`);
                     sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
-                    db.run(sql, [0, streams[i].name]);
+                    db.execute(sql, [0, streams[i].name]);
                 }
             }
         }

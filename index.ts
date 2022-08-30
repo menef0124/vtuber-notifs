@@ -3,16 +3,19 @@ import { Intents, MessageEmbed } from 'discord.js';
 import * as dotenv from 'dotenv';
 import { pollStreams } from './polling';
 import { getStreamStatuses } from './status'
-import * as sqlite3 from 'sqlite3';
+//import * as sqlite3 from 'sqlite3';
+import mysql from "mysql2/promise";
 import { open } from 'sqlite';
 dotenv.config();
 
 export let db: any;
 (async () => {
     // open the database
-    db = await open({
-        filename: './vtubers.sqlite',
-        driver: sqlite3.Database
+    db = await mysql.createConnection({
+        host: process.env.HOST,
+        user: process.env.DBUSR,
+        password: process.env.DBPW,
+        database: process.env.DB
     });
 })();
 
@@ -95,7 +98,7 @@ client.on('messageCreate', async (msg) => {
             msg.channel.send(await getStreamStatuses(msg.author.id));
         }
 
-/*
+
         //Add command that opts you into getting notifications whenever the selected streamer is live
         if (msg.content.toLowerCase() === `${PREFIX}add` || msg.content.toLowerCase() === `${PREFIX}a`) {
             //Gets the names of all streams in the DB
@@ -237,7 +240,7 @@ client.on('messageCreate', async (msg) => {
                 });
             });
         }
-*/
+
 
         //Silly commands
         if (msg.content.toLowerCase() === 'ping') {
