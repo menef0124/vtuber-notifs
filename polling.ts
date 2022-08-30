@@ -10,9 +10,8 @@ let streams: Livestream[] = [];
 export async function pollStreams(): Promise<Livestream[]> {
     let streamsToReturn: Livestream[] = [];
     let sql = 'SELECT * FROM streams';
-    let tmp = await db.execute(sql);
+    let tmp: any = await db.execute(sql);
     streams = tmp[0];
-    console.log(streams);
 
     //Iterates through entire database
     for (let i = 0; i < streams.length; i++) {

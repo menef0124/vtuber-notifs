@@ -103,7 +103,8 @@ client.on('messageCreate', async (msg) => {
         if (msg.content.toLowerCase() === `${PREFIX}add` || msg.content.toLowerCase() === `${PREFIX}a`) {
             //Gets the names of all streams in the DB
             const sql = "SELECT name FROM streams";
-            const streamNames = await db.all(sql);
+            const tmp = await db.execute(sql);
+            const streamNames = tmp[0];
 
             //Generates input prompt
             let prompt = "Reply with the selection that you'd like to get notifications from:\n`0` - Add new stream!\n";
@@ -129,7 +130,7 @@ client.on('messageCreate', async (msg) => {
                                                 let platform = url.first()?.content.includes("youtube") ? "youtube" : "twitch";
                                                 let streamUrl = url.first()?.content;
                                                 let sql = "INSERT INTO streams(name,platform,streamUrl,members,stillLive) VALUES (?,?,?,?,0)";
-                                                db.run(sql, [streamer, platform, streamUrl, msg.author.id]);
+                                                db.execute(sql, [streamer, platform, streamUrl, msg.author.id]);
                                                 msg.channel.send("✅ Success! " + streamer + " has been added and you will now get pings whenever they go live!");
 
                                             });
@@ -145,7 +146,8 @@ client.on('messageCreate', async (msg) => {
                             //If the input matches up with any of the streamers
                             if (streamName) {
                                 let sql = "SELECT members FROM streams WHERE name = ?"
-                                let members = await db.all(sql, [streamName]);
+                                let tmp = await db.execute(sql, [streamName]);
+                                let members = tmp[0];
                                 let memArr = members[0].members.split(','); //Splits up the array to be able to add members to the array
                                 //If the author's id number isn't already opted in to the selected stream
                                 if (!memArr.includes(msg.author.id)) {
@@ -161,7 +163,7 @@ client.on('messageCreate', async (msg) => {
     
                                     //Updates members list in the db
                                     sql = "UPDATE streams SET members = ? WHERE name = ?";
-                                    db.run(sql, [members, streamName]);
+                                    db.execute(sql, [members, streamName]);
     
                                     //Confirmation message that the add command worked
                                     msg.channel.send("✅ Success! You will now get pings whenever " + streamName + " is live!");
@@ -185,7 +187,8 @@ client.on('messageCreate', async (msg) => {
         //Remove command that opts the user out of notifications from a streamer
         if (msg.content.toLowerCase() === `${PREFIX}remove` || msg.content.toLowerCase() === `${PREFIX}r`) {
             let sql = "SELECT name, members FROM streams WHERE members like '%' || ? || '%'"; //Only selects streams that the user is getting notifications from
-            let streams = await db.all(sql, [msg.author.id]);
+            let tmp = await db.execute(sql, [msg.author.id]);
+            let streams = tmp[0];
 
             //Begin building prompt
             let prompt = "Reply with which stream you'd like to opt out of notifications for:\n";
@@ -208,7 +211,8 @@ client.on('messageCreate', async (msg) => {
                         //If the input matches up with any of the streamers
                         if (streamName) {
                             sql = "SELECT members FROM streams WHERE name = ?"
-                            let members = await db.all(sql, [streamName]);
+                            let tmp = await db.execute(sql, [streamName]);
+                            let members = tmp[0];
                             let memArr = members[0].members.split(','); //Splits up the array to be able to remove members from the array
                             //If the author's id number is already opted in to the selected stream
                             if (memArr.includes(msg.author.id)) {
@@ -216,13 +220,13 @@ client.on('messageCreate', async (msg) => {
                                 if (members != "") {
                                     //Updates members list in the db
                                     sql = "UPDATE streams SET members = ? WHERE name = ?";
-                                    db.run(sql, [members, streamName]);
+                                    db.execute(sql, [members, streamName]);
                                     //Confirmation message that the remove command worked
                                     msg.channel.send("✅ Success! You will no longer get any pings whenever " + streamName + " is live!");
                                 }
                                 else {
                                     sql = "UPDATE streams SET members = ? WHERE name = ?";
-                                    db.run(sql, [members, streamName]);
+                                    db.execute(sql, [members, streamName]);
                                     msg.channel.send("✅ Success! You will no longer get any pings whenever " + streamName + " is live!\nAll members have opted out of pings for " + streamName + ", no longer sending pings for their stream.");
                                 }
                             }

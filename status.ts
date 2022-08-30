@@ -3,7 +3,8 @@ import { Livestream, db } from "./index";
 export async function getStreamStatuses(userId: string): Promise<string> {
     //Gets all streams that user is opted into
     let sql = "SELECT * FROM streams WHERE members like '%' || ? || '%'";
-    let optedStreams: Livestream[] = await db.all(sql, [userId]);
+    let tmp: any = await db.execute(sql, [userId]);
+    let optedStreams: Livestream[] = tmp[0];
 
     //Starts building response message
     let res = "Current status of your streams:\n";
