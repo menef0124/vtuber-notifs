@@ -31,7 +31,7 @@ export type Livestream = {
 let mentionList: Livestream[] = [];
 
 const PREFIX: string = '$';
-const POLLING_TIMER: number = 15000; //milliseconds
+const POLLING_TIMER: number = 30000; //milliseconds
 
 let hiCount = 0;
 
