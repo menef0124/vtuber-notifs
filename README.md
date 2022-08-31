@@ -8,6 +8,18 @@ Small personal project that I used to help self-teach myself TypeScript and depl
   - TypeScript
   - Discord.js
   - MySQL as the database engine (DB hosted on AWS)
+
+## Database Schema
+  CREATE TABLE `streams` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(255) NOT NULL DEFAULT '',
+    `platform` VARCHAR(255) NOT NULL DEFAULT '',
+    `streamUrl` VARCHAR(255) NOT NULL DEFAULT '',
+    `members` VARCHAR(255) NOT NULL DEFAULT '',
+    `stillLive` INT NOT NULL DEFAULT '1',
+    `lastPingTime` BIGINT NOT NULL DEFAULT '0',
+    PRIMARY KEY (`id`)
+  )
   
 ## Building & Running
 Simply run `npm install` to install all packages then run the application with `ts-node index.ts`. A Discord API token for your own bot and credentials for your own MySQL DB will be needed to run.
@@ -23,4 +35,5 @@ Simply run `npm install` to install all packages then run the application with `
 - The text channels that the bot send messages to are pretty cluttered due to the bot not deleting its previous messages (be they notifications or reponses to the add and remove commands), so some bot message cleanup would make things neater
 - When adding a new stream to the bot's database, the bot doesn't show the user what they entered to verify that the info is correct before adding it to the DB, so having that would be great.
 - Better polling for Twitch streams. It works, but I had to add some weird logic to get it going because if I didn't, the bot would spam notifications for a stream that already went live.
+- Add a database seed if anyone else ever works on this
 - General code cleanup
