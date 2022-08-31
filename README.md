@@ -8,6 +8,9 @@ Small personal project that I used to help self-teach myself TypeScript and depl
   - TypeScript
   - Discord.js
   - MySQL as the database engine (DB hosted on AWS)
+  
+## Building & Running
+Simply run `npm install` to install all packages then run the application with `ts-node index.ts`. A Discord API token for your own bot and credentials for your own MySQL DB will be needed to run.
 
 ## Current Features
 - (Primary feature) Polls the livestreams of multiple streamers (YouTube and Twitch) and sends Discord notifications to users that are opted in to the notifications of a specific streamer that they've gone live.
