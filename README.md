@@ -10,6 +10,7 @@ Small personal project that I used to help self-teach myself TypeScript and depl
   - MySQL as the database engine (DB hosted on AWS)
 
 ## Database Schema
+```
   CREATE TABLE `streams` (
     `id` INT NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(255) NOT NULL DEFAULT '',
@@ -20,7 +21,7 @@ Small personal project that I used to help self-teach myself TypeScript and depl
     `lastPingTime` BIGINT NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`)
   )
-  
+```
 ## Building & Running
 Simply run `npm install` to install all packages then run the application with `ts-node index.ts`. A Discord API token for your own bot and credentials for your own MySQL DB will be needed to run.
 
