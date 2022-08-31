@@ -19,5 +19,5 @@ Small personal project that I used to help self-teach myself TypeScript and depl
 - (End goal) The text channels that the bot sends notification messages to is currently hardcoded since it's only used in one server, so I'd like to make that dynamic so that the bot can be possibly shared with other servers.
 - The text channels that the bot send messages to are pretty cluttered due to the bot not deleting its previous messages (be they notifications or reponses to the add and remove commands), so some bot message cleanup would make things neater
 - When adding a new stream to the bot's database, the bot doesn't show the user what they entered to verify that the info is correct before adding it to the DB, so having that would be great.
-- Better polling for Twitch streams. It works, but I had to add some weird logic to because before I did the bot would spam notifications for a stream that already went live.
+- Better polling for Twitch streams. It works, but I had to add some weird logic to get it going because if I didn't, the bot would spam notifications for a stream that already went live.
 - General code cleanup
