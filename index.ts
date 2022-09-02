@@ -186,8 +186,9 @@ client.on('messageCreate', async (msg) => {
 
         //Remove command that opts the user out of notifications from a streamer
         if (msg.content.toLowerCase() === `${PREFIX}remove` || msg.content.toLowerCase() === `${PREFIX}r`) {
-            let sql = "SELECT name, members FROM streams WHERE members like '%' || ? || '%'"; //Only selects streams that the user is getting notifications from
-            let tmp = await db.execute(sql, [msg.author.id]);
+            mysql.escape(msg.author.id);
+            let sql = `SELECT name, members FROM streams WHERE members like '%${msg.author.id}%'`; //Only selects streams that the user is getting notifications from
+            let tmp = await db.execute(sql);
             let streams = tmp[0];
 
             //Begin building prompt

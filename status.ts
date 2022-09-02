@@ -1,9 +1,12 @@
 import { Livestream, db } from "./index";
+import mysql from "mysql2/promise";
 
 export async function getStreamStatuses(userId: string): Promise<string> {
     //Gets all streams that user is opted into
-    let sql = "SELECT * FROM streams WHERE members like '%' || ? || '%'";
-    let tmp: any = await db.execute(sql, [userId]);
+    mysql.escape(userId);
+    let sql = `SELECT * FROM streams WHERE members like '%${userId}%'`;
+    let tmp: any = await db.execute(sql);
+    console.log(tmp);
     let optedStreams: Livestream[] = tmp[0];
 
     //Starts building response message
