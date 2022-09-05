@@ -1,4 +1,4 @@
-import { Livestream, db } from "./index";
+import { Livestream, db, twitch } from "./index";
 import fetch from "node-fetch";
 import { parse } from 'node-html-parser';
 
@@ -24,19 +24,24 @@ export async function pollStreams(): Promise<Livestream[]> {
                 //Get HTML reponse that's returned by the stream URL
                 const res = await fetch(streams[i].streamUrl);
                 const ytHtml = await res.text();
+                const isLive = checkIfLive(ytHtml);
                 //If the stream just went live
-                if (checkIfLive(ytHtml) && status == 0) {
+                if (isLive && status == 0) {
                     console.log(`${streams[i].name} is now live!`);
                     sql = "UPDATE streams SET stillLive = ?, lastPingTime = ? WHERE name = ?";
                     db.execute(sql, [1, (new Date().getTime()), streams[i].name]);
                     streamsToReturn.push(streams[i]);
                 }
                 //If the stream ping was already sent out and the stream is still going
-                if (checkIfLive(ytHtml) && status == 1) {
+                if (isLive && status == 1) {
                     console.log(`${streams[i].name} is online`);
                 }
-                //If the stream is offline
-                if (!checkIfLive(ytHtml)) {
+                //If the stream is still offline
+                if(!isLive && status == 0){
+                    console.log(`${streams[i].name} is offline`);
+                }
+                //If the stream went offline
+                if (!isLive && status == 1) {
                     console.log(`${streams[i].name} is offline`);
                     sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
                     db.execute(sql, [0, streams[i].name]);
@@ -47,7 +52,7 @@ export async function pollStreams(): Promise<Livestream[]> {
                 //Get HTML reponse that's returned by the stream URL
                 const res = await fetch(streams[i].streamUrl);
                 //Twitch's HTML response for a channel already comes with a variable that Twitch only returns if that channel is live
-                let isLive = (await res.text()).includes('isLiveBroadcast');
+                const isLive = (await res.text()).includes('isLiveBroadcast');
                 //If stream just went live
                 if (isLive && status == 0) {
                     console.log(`${streams[i].name} is now live!`);
@@ -59,8 +64,12 @@ export async function pollStreams(): Promise<Livestream[]> {
                 if (isLive && status == 1) {
                     console.log(`${streams[i].name} is online`);
                 }
-                //If the stream is offline
-                if (!isLive) {
+                //If the stream is still offline
+                if(!isLive && status == 0){
+                    console.log(`${streams[i].name} is offline`);
+                }
+                //If the stream went offline
+                if (!isLive && status == 1) {
                     console.log(`${streams[i].name} is offline`);
                     sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
                     db.execute(sql, [0, streams[i].name]);

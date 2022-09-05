@@ -1,11 +1,10 @@
 import * as discord from 'discord.js';
-import { Intents, MessageEmbed } from 'discord.js';
+import { Intents } from 'discord.js';
+import TwitchApi from 'node-twitch';
 import * as dotenv from 'dotenv';
 import { pollStreams } from './polling';
 import { getStreamStatuses } from './status'
-//import * as sqlite3 from 'sqlite3';
 import mysql from "mysql2/promise";
-import { open } from 'sqlite';
 dotenv.config();
 
 export let db: any;
@@ -18,6 +17,14 @@ export let db: any;
         database: process.env.DB
     });
 })();
+
+export let twitch: any;
+if(process.env.TWITCHID && process.env.TWITCHSEC){
+    twitch = new TwitchApi({
+        client_id: process.env.TWITCHID,
+        client_secret: process.env.TWITCHSEC 
+    });
+}
 
 export type Livestream = {
     name: string,
