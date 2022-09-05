@@ -39,6 +39,7 @@ let mentionList: Livestream[] = [];
 
 const PREFIX: string = '$';
 const POLLING_TIMER: number = 30000; //milliseconds
+const CLEAR_TIMER: number = 86400000;
 
 let hiCount = 0;
 
@@ -60,17 +61,17 @@ client.on('ready', () => {
     async function clear(){
         const channel = (client.channels.cache.get(notifsChannel) as discord.TextChannel);
         const fetched = await channel.messages.fetch({limit: 99});
-        channel.bulkDelete(fetched).catch((err) => console.log("All old messages deleted already"));
+        channel.bulkDelete(fetched, true).catch((err) => console.log("All old messages deleted already"));
     }
     clear();
+
+    //Clears past 100 messages sent within the past 2 weeks in the notifs channel every 24 hours
     let clearInt = setInterval(async () =>{
-        console.log("Entered clear loop");
         clear();
-    }, 86400000);
+    }, CLEAR_TIMER);
 
     //This interval is the heart of the stream polling functionality
     let mainInt = setInterval(async () => {
-        console.log("Entered main loop");
         //Gets all livestreams that just went live
         let streamList = await pollStreams();
         //Iterates through that list of streams 
