@@ -20,7 +20,7 @@ export async function pollStreams(): Promise<Livestream[]> {
         let timeSincePing = streams[i].lastPingTime;
         try {
             //YouTube streams only
-            if (platform == "youtube" && (((new Date().getTime()) - timeSincePing) >= 3600000)) {
+            if (platform == "youtube") {
                 //Get HTML reponse that's returned by the stream URL
                 const res = await fetch(streams[i].streamUrl);
                 const ytHtml = await res.text();
@@ -42,17 +42,18 @@ export async function pollStreams(): Promise<Livestream[]> {
                 }
                 //If the stream went offline
                 if (!isLive && status == 1) {
-                    console.log(`${streams[i].name} is offline`);
+                    console.log(`${streams[i].name} is now offline`);
                     sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
                     db.execute(sql, [0, streams[i].name]);
                 }
             }
             //Twitch streams only
-            if (platform == "twitch" && (((new Date().getTime()) - timeSincePing) >= 3600000)) {
+            if (platform == "twitch") {
                 //Get HTML reponse that's returned by the stream URL
-                const res = await fetch(streams[i].streamUrl);
+                const channelName = streams[i].streamUrl.substring(streams[i].streamUrl.lastIndexOf('/')+1);
+                const res = await twitch.getStreams({ channel: channelName});
                 //Twitch's HTML response for a channel already comes with a variable that Twitch only returns if that channel is live
-                const isLive = (await res.text()).includes('isLiveBroadcast');
+                const isLive = res.data.length > 0 ? true : false;
                 //If stream just went live
                 if (isLive && status == 0) {
                     console.log(`${streams[i].name} is now live!`);
@@ -70,7 +71,7 @@ export async function pollStreams(): Promise<Livestream[]> {
                 }
                 //If the stream went offline
                 if (!isLive && status == 1) {
-                    console.log(`${streams[i].name} is offline`);
+                    console.log(`${streams[i].name} is now offline`);
                     sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
                     db.execute(sql, [0, streams[i].name]);
                 }

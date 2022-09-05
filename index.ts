@@ -122,28 +122,30 @@ client.on('messageCreate', async (msg) => {
             //Only allows messages from the person who called the add command
             let filter = (m: any) => m.author.id === msg.author.id;
 
-            msg.channel.send(prompt).then(() => {
+            msg.channel.send(prompt).then((m) => {
                 msg.channel.awaitMessages({ filter: filter, max: 1, time: 60000, errors: ['time'] }).then(async (selected) => {
                     //Gets inputted number 
                     let selection = selected.first()?.content;
                     if (typeof (selection) !== "undefined") {
                         if(selection == "0"){
-                            msg.channel.send("What's the name of the streamer?").then(() => {
+                            msg.channel.send("What's the name of the streamer?").then((m) => {
                                 msg.channel.awaitMessages({filter: filter, max: 1, time: 60000, errors: ['time']}).then(async (name) => {
                                     let streamer = name.first()?.content;
                                     if(typeof(streamer) !== "undefined"){
-                                        msg.channel.send("What's their stream URL?\n(For YouTube, the url format is https://www.youtube.com/channel/<channelID>/live and for Twitch it's https://www.twitch.tv/<channelName>").then(() => {
+                                        msg.channel.send("What's their stream URL?\n(For YouTube, the url format is https://www.youtube.com/channel/<channelID>/live and for Twitch it's https://www.twitch.tv/<channelName>").then((m) => {
                                             msg.channel.awaitMessages({filter: filter, max: 1, time:60000, errors: ['time']}).then(async (url) => {
                                                 let platform = url.first()?.content.includes("youtube") ? "youtube" : "twitch";
                                                 let streamUrl = url.first()?.content;
                                                 let sql = "INSERT INTO streams(name,platform,streamUrl,members,stillLive) VALUES (?,?,?,?,0)";
                                                 db.execute(sql, [streamer, platform, streamUrl, msg.author.id]);
-                                                msg.channel.send("✅ Success! " + streamer + " has been added and you will now get pings whenever they go live!");
+                                                msg.channel.send("✅ Success! " + streamer + " has been added and you will now get pings whenever they go live!").then(msg => {setTimeout(() => msg.delete(), 10000)});
 
                                             });
+                                            setTimeout(() => m.delete(), 30000);
                                         });
                                     }
                                 });
+                                setTimeout(() => m.delete(), 30000);
                             });
                         }
                         else{
@@ -173,21 +175,22 @@ client.on('messageCreate', async (msg) => {
                                     db.execute(sql, [members, streamName]);
     
                                     //Confirmation message that the add command worked
-                                    msg.channel.send("✅ Success! You will now get pings whenever " + streamName + " is live!");
+                                    msg.channel.send("✅ Success! You will now get pings whenever " + streamName + " is live!").then(msg => {setTimeout(() => msg.delete(), 10000)});
                                 }
                                 //If author's user id is found in the selected stream's list of members already
                                 else {
-                                    msg.channel.send("Silly goose you're already getting notifications for that stream smh");
+                                    msg.channel.send("Silly goose you're already getting notifications for that stream smh").then(msg => {setTimeout(() => msg.delete(), 10000)});
                                 }
     
                             }
                             else {
                                 //If input is not in the range of the number of 
-                                msg.channel.send("Invalid input!");
+                                msg.channel.send("Invalid input!").then(msg => {setTimeout(() => msg.delete(), 10000)});
                             }
                         }
                     }
                 });
+                setTimeout(() => m.delete(), 30000);
             });
         }
 
@@ -208,7 +211,7 @@ client.on('messageCreate', async (msg) => {
             let filter = (m: any) => m.author.id === msg.author.id;
 
             //Sends prompt then waits for the next input from the user
-            msg.channel.send(prompt).then(() => {
+            msg.channel.send(prompt).then((m) => {
                 msg.channel.awaitMessages({ filter: filter, max: 1, time: 30000, errors: ['time'] }).then(async (selected) => {
                     //Gets inputted number 
                     let selection = selected.first()?.content;
@@ -230,33 +233,34 @@ client.on('messageCreate', async (msg) => {
                                     sql = "UPDATE streams SET members = ? WHERE name = ?";
                                     db.execute(sql, [members, streamName]);
                                     //Confirmation message that the remove command worked
-                                    msg.channel.send("✅ Success! You will no longer get any pings whenever " + streamName + " is live!");
+                                    msg.channel.send("✅ Success! You will no longer get any pings whenever " + streamName + " is live!").then(msg => {setTimeout(() => msg.delete(), 10000)});
                                 }
                                 else {
                                     sql = "UPDATE streams SET members = ? WHERE name = ?";
                                     db.execute(sql, [members, streamName]);
-                                    msg.channel.send("✅ Success! You will no longer get any pings whenever " + streamName + " is live!\nAll members have opted out of pings for " + streamName + ", no longer sending pings for their stream.");
+                                    msg.channel.send("✅ Success! You will no longer get any pings whenever " + streamName + " is live!\nAll members have opted out of pings for " + streamName + ", no longer sending pings for their stream.").then(msg => {setTimeout(() => msg.delete(), 10000)});
                                 }
                             }
                             //If author's user id is found in the selected stream's list of members already
                             else {
-                                msg.channel.send("Invalid input!");
+                                msg.channel.send("Invalid input!").then(msg => {setTimeout(() => msg.delete(), 10000)});
                             }
 
                         }
                         else {
                             //If input is not in the range of the number of 
-                            msg.channel.send("Invalid input!");
+                            msg.channel.send("Invalid input!").then(msg => {setTimeout(() => msg.delete(), 10000)});
                         }
                     }
                 });
+                setTimeout(() => m.delete(), 30000);
             });
         }
 
 
         //Silly commands
         if (msg.content.toLowerCase() === 'ping') {
-            msg.reply("pong");
+            msg.reply("pong").then(msg => {setTimeout(() => msg.delete(), 10000)});
         }
 
     }
