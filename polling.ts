@@ -19,10 +19,10 @@ export async function pollStreams(): Promise<Livestream[]> {
         let platform = streams[i].platform;
         let timeSincePing = streams[i].lastPingTime;
         try {
-            //Get HTML reponse that's returned by the stream URL
-            const res = await fetch(streams[i].streamUrl);
             //YouTube streams only
-            if (platform == "youtube" && ((new Date().getTime()) - timeSincePing >= 3600000)) {
+            if (platform == "youtube" && (((new Date().getTime()) - timeSincePing) >= 3600000)) {
+                //Get HTML reponse that's returned by the stream URL
+                const res = await fetch(streams[i].streamUrl);
                 const ytHtml = await res.text();
                 //If the stream just went live
                 if (checkIfLive(ytHtml) && status == 0) {
@@ -43,7 +43,9 @@ export async function pollStreams(): Promise<Livestream[]> {
                 }
             }
             //Twitch streams only
-            if (platform == "twitch" && ((new Date().getTime()) - timeSincePing >= 3600000)) {
+            if (platform == "twitch" && (((new Date().getTime()) - timeSincePing) >= 3600000)) {
+                //Get HTML reponse that's returned by the stream URL
+                const res = await fetch(streams[i].streamUrl);
                 //Twitch's HTML response for a channel already comes with a variable that Twitch only returns if that channel is live
                 let isLive = (await res.text()).includes('isLiveBroadcast');
                 //If stream just went live
