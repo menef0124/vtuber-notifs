@@ -55,10 +55,22 @@ const client = new discord.Client({
 client.on('ready', () => {
     console.log("Bot is up");
     const notifsChannel = "998203253558878228";
-    //const testChannel = "995890408846536796";
+
+    //Clear chat
+    async function clear(){
+        const channel = (client.channels.cache.get(notifsChannel) as discord.TextChannel);
+        const fetched = await channel.messages.fetch({limit: 99});
+        channel.bulkDelete(fetched).catch((err) => console.log("All old messages deleted already"));
+    }
+    clear();
+    let clearInt = setInterval(async () =>{
+        console.log("Entered clear loop");
+        clear();
+    }, 86400000);
 
     //This interval is the heart of the stream polling functionality
-    let interval = setInterval(async () => {
+    let mainInt = setInterval(async () => {
+        console.log("Entered main loop");
         //Gets all livestreams that just went live
         let streamList = await pollStreams();
         //Iterates through that list of streams 
@@ -124,16 +136,19 @@ client.on('messageCreate', async (msg) => {
 
             msg.channel.send(prompt).then((m) => {
                 msg.channel.awaitMessages({ filter: filter, max: 1, time: 60000, errors: ['time'] }).then(async (selected) => {
+                    m.delete();
                     //Gets inputted number 
                     let selection = selected.first()?.content;
                     if (typeof (selection) !== "undefined") {
                         if(selection == "0"){
                             msg.channel.send("What's the name of the streamer?").then((m) => {
                                 msg.channel.awaitMessages({filter: filter, max: 1, time: 60000, errors: ['time']}).then(async (name) => {
+                                    m.delete()
                                     let streamer = name.first()?.content;
                                     if(typeof(streamer) !== "undefined"){
                                         msg.channel.send("What's their stream URL?\n(For YouTube, the url format is https://www.youtube.com/channel/<channelID>/live and for Twitch it's https://www.twitch.tv/<channelName>").then((m) => {
                                             msg.channel.awaitMessages({filter: filter, max: 1, time:60000, errors: ['time']}).then(async (url) => {
+                                                m.delete();
                                                 let platform = url.first()?.content.includes("youtube") ? "youtube" : "twitch";
                                                 let streamUrl = url.first()?.content;
                                                 let sql = "INSERT INTO streams(name,platform,streamUrl,members,stillLive) VALUES (?,?,?,?,0)";
@@ -141,11 +156,11 @@ client.on('messageCreate', async (msg) => {
                                                 msg.channel.send("✅ Success! " + streamer + " has been added and you will now get pings whenever they go live!").then(msg => {setTimeout(() => msg.delete(), 10000)});
 
                                             });
-                                            setTimeout(() => m.delete(), 30000);
+                                            setTimeout(async () => await m.delete().catch((err) => console.log("Message already deleted")), 30000);
                                         });
                                     }
                                 });
-                                setTimeout(() => m.delete(), 30000);
+                                setTimeout(async () => await m.delete().catch((err) => console.log("Message already deleted")), 30000);
                             });
                         }
                         else{
@@ -190,7 +205,7 @@ client.on('messageCreate', async (msg) => {
                         }
                     }
                 });
-                setTimeout(() => m.delete(), 30000);
+                setTimeout(async () => await m.delete().catch((err) => console.log("Message already deleted")), 30000);
             });
         }
 
@@ -213,6 +228,7 @@ client.on('messageCreate', async (msg) => {
             //Sends prompt then waits for the next input from the user
             msg.channel.send(prompt).then((m) => {
                 msg.channel.awaitMessages({ filter: filter, max: 1, time: 30000, errors: ['time'] }).then(async (selected) => {
+                    m.delete();
                     //Gets inputted number 
                     let selection = selected.first()?.content;
                     if (typeof (selection) !== "undefined") {
@@ -253,7 +269,7 @@ client.on('messageCreate', async (msg) => {
                         }
                     }
                 });
-                setTimeout(() => m.delete(), 30000);
+                setTimeout(async () => await m.delete().catch((err) => console.log("Message already deleted")), 30000);
             });
         }
 
