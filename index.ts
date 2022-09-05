@@ -115,7 +115,7 @@ client.on('messageCreate', async (msg) => {
 
         //Status command that lists the streaming status of all streams the that user has opted into notifs for
         if (msg.content.toLowerCase() === `${PREFIX}status` || msg.content.toLowerCase() === `${PREFIX}s`) {
-            msg.channel.send(await getStreamStatuses(msg.author.id));
+            msg.channel.send(await getStreamStatuses(msg.author.id)).then(msg => {setTimeout(() => msg.delete(), 20000)});;
         }
 
 
