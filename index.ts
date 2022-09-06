@@ -1,7 +1,6 @@
 import * as discord from 'discord.js';
 import { Intents } from 'discord.js';
 import TwitchApi from 'node-twitch';
-import { google } from 'googleapis';
 import * as dotenv from 'dotenv';
 import { pollStreams } from './polling';
 import { getStreamStatuses } from './status'
@@ -26,9 +25,6 @@ if(process.env.TWITCHID && process.env.TWITCHSEC){
         client_secret: process.env.TWITCHSEC 
     });
 }
-
-export const youtube = google.youtube('v3');
-export const YT_API_KEY = process.env.YTKEY;
 
 export type Livestream = {
     name: string,
@@ -185,9 +181,7 @@ client.on('messageCreate', async (msg) => {
                                     else{
                                         memArr.push(msg.author.id);
                                     }
-                                    console.log("memArr:", memArr);
                                     members = memArr.join(','); //Turns array back into a comma-separated list
-                                    console.log("members", members);
     
                                     //Updates members list in the db
                                     sql = "UPDATE streams SET members = ? WHERE name = ?";
