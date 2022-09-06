@@ -21,7 +21,7 @@ export async function pollStreams(): Promise<Livestream[]> {
             if (isLive && status == 0) {
                 console.log(`${streams[i].name} is now live!`);
                 sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
-                db.execute(sql, [1, (new Date().getTime()), streams[i].name]);
+                db.execute(sql, [1, streams[i].name]);
                 streamsToReturn.push(streams[i]);
             }
             //If the stream ping was already sent out and the stream is still going
