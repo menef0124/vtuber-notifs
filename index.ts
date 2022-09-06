@@ -1,6 +1,7 @@
 import * as discord from 'discord.js';
 import { Intents } from 'discord.js';
 import TwitchApi from 'node-twitch';
+import { google } from 'googleapis';
 import * as dotenv from 'dotenv';
 import { pollStreams } from './polling';
 import { getStreamStatuses } from './status'
@@ -26,13 +27,15 @@ if(process.env.TWITCHID && process.env.TWITCHSEC){
     });
 }
 
+export const youtube = google.youtube('v3');
+export const YT_API_KEY = process.env.YTKEY;
+
 export type Livestream = {
     name: string,
     platform: string
     streamUrl: string,
     members: string,
-    stillLive: number,
-    lastPingTime: number
+    stillLive: number
 };
 
 let mentionList: Livestream[] = [];

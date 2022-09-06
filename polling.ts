@@ -1,6 +1,5 @@
-import { Livestream, db, twitch } from "./index";
-import fetch from "node-fetch";
-import { parse } from 'node-html-parser';
+import { Livestream, db, twitch, youtube, YT_API_KEY } from "./index";
+import { youtube_v3 } from 'googleapis';
 
 //Used in confirming if a stream is live or a waiting room
 const EXPECTED_START = "var ytInitialPlayerResponse = ";
@@ -16,65 +15,28 @@ export async function pollStreams(): Promise<Livestream[]> {
     //Iterates through entire database
     for (let i = 0; i < streams.length; i++) {
         let status = streams[i].stillLive;
-        let platform = streams[i].platform;
-        let timeSincePing = streams[i].lastPingTime;
         try {
-            //YouTube streams only
-            if (platform == "youtube") {
-                //Get HTML reponse that's returned by the stream URL
-                const res = await fetch(streams[i].streamUrl);
-                const ytHtml = await res.text();
-                const isLive = checkIfLive(ytHtml);
-                //If the stream just went live
-                if (isLive && status == 0) {
-                    console.log(`${streams[i].name} is now live!`);
-                    sql = "UPDATE streams SET stillLive = ?, lastPingTime = ? WHERE name = ?";
-                    db.execute(sql, [1, (new Date().getTime()), streams[i].name]);
-                    streamsToReturn.push(streams[i]);
-                }
-                //If the stream ping was already sent out and the stream is still going
-                if (isLive && status == 1) {
-                    console.log(`${streams[i].name} is online`);
-                }
-                //If the stream is still offline
-                if(!isLive && status == 0){
-                    console.log(`${streams[i].name} is offline`);
-                }
-                //If the stream went offline
-                if (!isLive && status == 1) {
-                    console.log(`${streams[i].name} is now offline`);
-                    sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
-                    db.execute(sql, [0, streams[i].name]);
-                }
+            const isLive = await checkIfLive(streams[i]);
+            //If the stream just went live
+            if (isLive && status == 0) {
+                console.log(`${streams[i].name} is now live!`);
+                sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
+                db.execute(sql, [1, (new Date().getTime()), streams[i].name]);
+                streamsToReturn.push(streams[i]);
             }
-            //Twitch streams only
-            if (platform == "twitch") {
-                //Get HTML reponse that's returned by the stream URL
-                const channelName = streams[i].streamUrl.substring(streams[i].streamUrl.lastIndexOf('/')+1);
-                const res = await twitch.getStreams({ channel: channelName});
-                //Twitch's HTML response for a channel already comes with a variable that Twitch only returns if that channel is live
-                const isLive = res.data.length > 0 ? true : false;
-                //If stream just went live
-                if (isLive && status == 0) {
-                    console.log(`${streams[i].name} is now live!`);
-                    sql = "UPDATE streams SET stillLive = ?, lastPingTime = ? WHERE name = ?";
-                    db.execute(sql, [1, (new Date().getTime()), streams[i].name]);
-                    streamsToReturn.push(streams[i]);
-                }
-                //If stream is still live and the ping was already sent out
-                if (isLive && status == 1) {
-                    console.log(`${streams[i].name} is online`);
-                }
-                //If the stream is still offline
-                if(!isLive && status == 0){
-                    console.log(`${streams[i].name} is offline`);
-                }
-                //If the stream went offline
-                if (!isLive && status == 1) {
-                    console.log(`${streams[i].name} is now offline`);
-                    sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
-                    db.execute(sql, [0, streams[i].name]);
-                }
+            //If the stream ping was already sent out and the stream is still going
+            if (isLive && status == 1) {
+                console.log(`${streams[i].name} is online`);
+            }
+            //If the stream is still offline
+            if(!isLive && status == 0){
+                console.log(`${streams[i].name} is offline`);
+            }
+            //If the stream went offline
+            if (!isLive && status == 1) {
+                console.log(`${streams[i].name} is now offline`);
+                sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
+                db.execute(sql, [0, streams[i].name]);
             }
         }
         catch (e) {
@@ -88,7 +50,31 @@ export async function pollStreams(): Promise<Livestream[]> {
 }
 
 //Digs through the HTML that youtube returns to see if the channel is live
-function checkIfLive(html: string): boolean {
+async function checkIfLive(stream: Livestream): Promise<boolean | undefined> {
+
+    if(stream.platform == 'youtube'){
+        if(YT_API_KEY){
+            const params: youtube_v3.Params$Resource$Search$List = {
+                part: ["snippet"],
+                channelId: stream.streamUrl.substring(stream.streamUrl.lastIndexOf('channel/')+8, stream.streamUrl.lastIndexOf('/')),
+                eventType: "live",
+                type: ["video"],
+                key: YT_API_KEY
+            }
+            const res = await youtube.search.list(params);
+            return res.data.items!.length > 0;
+        }
+    }
+    else if(stream.platform == 'twitch'){
+        const channelName = stream.streamUrl.substring(stream.streamUrl.lastIndexOf('/')+1);
+        const res = await twitch.getStreams({channel: channelName});
+        return res.data.length > 0;
+    }
+    else{
+        return false;
+    }
+
+    /*
     //Split up the HTML
     const dom = parse(html, {
         blockTextElements: {
@@ -120,6 +106,7 @@ function checkIfLive(html: string): boolean {
     }
 
     return false;
+    */
 }
 
 //Idk some shit from the imissfauna.com repo
