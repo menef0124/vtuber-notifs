@@ -18,12 +18,11 @@ Small personal project that I used to help self-teach myself TypeScript and depl
     `streamUrl` VARCHAR(255) NOT NULL DEFAULT '',
     `members` VARCHAR(255) NOT NULL DEFAULT '',
     `stillLive` INT NOT NULL DEFAULT '1',
-    `lastPingTime` BIGINT NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`)
   )
 ```
 ## Building & Running
-Simply run `npm install` to install all packages then run the application with `ts-node index.ts`. A Discord API token for your own bot and credentials for your own MySQL DB will be needed to run.
+Simply run `npm install` to install all packages then run the application with `ts-node index.ts`. A Discord API token for your own bot, credentials for your own MySQL DB, and a Twitch API client ID and secret will be needed to run.
 
 ## Current Features
 - (Primary feature) Polls the livestreams of multiple streamers (YouTube and Twitch) and sends Discord notifications to users that are opted in to the notifications of a specific streamer that they've gone live.
@@ -33,8 +32,8 @@ Simply run `npm install` to install all packages then run the application with `
 
 ## Planned Things to Work On
 - (End goal) The text channels that the bot sends notification messages to is currently hardcoded since it's only used in one server, so I'd like to make that dynamic so that the bot can be possibly shared with other servers.
-- The text channels that the bot send messages to are pretty cluttered due to the bot not deleting its previous messages (be they notifications or reponses to the add and remove commands), so some bot message cleanup would make things neater
+- ~~The text channels that the bot send messages to are pretty cluttered due to the bot not deleting its previous messages (be they notifications or reponses to the add and remove commands), so some bot message cleanup would make things neater~~
 - When adding a new stream to the bot's database, the bot doesn't show the user what they entered to verify that the info is correct before adding it to the DB, so having that would be great.
-- Better polling for Twitch streams. It works, but I had to add some weird logic to get it going because if I didn't, the bot would spam notifications for a stream that already went live.
+- ~~Better polling for Twitch streams. It works, but I had to add some weird logic to get it going because if I didn't, the bot would spam notifications for a stream that already went live.~~
 - Add a database seed if anyone else ever works on this
 - General code cleanup
