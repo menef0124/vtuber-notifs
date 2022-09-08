@@ -39,6 +39,7 @@ let mentionList: Livestream[] = [];
 const PREFIX: string = '$';
 const POLLING_TIMER: number = 30000; //milliseconds
 const CLEAR_TIMER: number = 86400000;
+const NOTIFS_CHANNEL = "1017332176422961203";
 
 let hiCount = 0;
 
@@ -54,11 +55,11 @@ const client = new discord.Client({
 //Event for when the bot starts
 client.on('ready', () => {
     console.log("Bot is up");
-    const notifsChannel = "1017332176422961203";
+
 
     //Clear chat
     async function clear(){
-        const channel = (client.channels.cache.get(notifsChannel) as discord.TextChannel);
+        const channel = (client.channels.cache.get(NOTIFS_CHANNEL) as discord.TextChannel);
         const fetched = await channel.messages.fetch({limit: 99});
         channel.bulkDelete(fetched, true).catch((err) => console.log("All old messages deleted already"));
     }
@@ -84,7 +85,7 @@ client.on('ready', () => {
                 pings += `<@${members[j]}> `;
             }
             //Pings the user with the livestream link
-            (client.channels.cache.get(notifsChannel) as discord.TextChannel).send(pings + `${streamList[i].name} is live!\n${streamList[i].streamUrl}`);
+            (client.channels.cache.get(NOTIFS_CHANNEL) as discord.TextChannel).send(pings + `${streamList[i].name} is live!\n${streamList[i].streamUrl}`);
         }
     }, POLLING_TIMER);
 });
@@ -97,7 +98,7 @@ client.on('messageCreate', async (msg) => {
     }
 
     //Ignore any messages not sent to the correct channels
-    if (msg.channelId != "998203253558878228" && msg.channelId != "995890408846536796") {
+    if (msg.channelId != NOTIFS_CHANNEL) {
         return;
     }
     else {
