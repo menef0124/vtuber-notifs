@@ -54,7 +54,7 @@ const client = new discord.Client({
 //Event for when the bot starts
 client.on('ready', () => {
     console.log("Bot is up");
-    const notifsChannel = "998203253558878228";
+    const notifsChannel = "1017332176422961203";
 
     //Clear chat
     async function clear(){
