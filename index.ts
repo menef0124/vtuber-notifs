@@ -42,6 +42,7 @@ const CLEAR_TIMER: number = 86400000;
 const NOTIFS_CHANNEL = "1017332176422961203";
 
 let hiCount = 0;
+export let admin = 0;
 
 const client = new discord.Client({
     intents: [
@@ -81,6 +82,7 @@ client.on('ready', () => {
                 continue;
             let pings: string = "";
             //Adds the ping strings
+            pings += admin === 0 ? "" : "<@308629810085625878>";
             for (let j = 0; j < members.length; j++) {
                 pings += `<@${members[j]}> `;
             }
@@ -103,6 +105,13 @@ client.on('messageCreate', async (msg) => {
     }
     else {
 
+        //Toggle admin mode
+        if(msg.content.toLowerCase() === `${PREFIX}debug` || msg.content.toLowerCase() === `${PREFIX}d` && msg.author.id === "308629810085625878"){
+            admin = admin === 0 ? 1 : 0;
+            msg.channel.send(`Debug mode is now ${admin === 0 ? "off!" : "on!"}`).then(msg => {setTimeout(() => msg.delete(), 10000)});
+
+        }
+
         //Ping command
         if (msg.content.toLowerCase() === `${PREFIX}ping`) {
             msg.channel.send(`🏓Latency is ${Date.now() - msg.createdTimestamp}ms. API Latency is ${Math.round(client.ws.ping)}ms`);
@@ -115,7 +124,7 @@ client.on('messageCreate', async (msg) => {
 
         //Status command that lists the streaming status of all streams the that user has opted into notifs for
         if (msg.content.toLowerCase() === `${PREFIX}status` || msg.content.toLowerCase() === `${PREFIX}s`) {
-            msg.channel.send(await getStreamStatuses(msg.author.id)).then(msg => {setTimeout(() => msg.delete(), 20000)});;
+            msg.channel.send(await getStreamStatuses(msg.author.id)).then(msg => {setTimeout(() => msg.delete(), 20000)});
         }
 
 
