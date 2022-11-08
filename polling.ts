@@ -12,7 +12,7 @@ export async function pollStreams(): Promise<Livestream[]> {
     let sql = 'SELECT * FROM streams';
     let tmp: any = await db.execute(sql);
     streams = tmp[0];
-
+    console.log(new Date().toDateString(), new Date().toTimeString());
     //Iterates through entire database
     for (let i = 0; i < streams.length; i++) {
         let status = streams[i].stillLive;

@@ -23,6 +23,7 @@
     "mysql2": "^2.3.3",
     "node-html-parser": "^5.3.3",
     "node-twitch": "^0.4.7",
+    "nodemon": "^2.0.20",
     "sqlite": "^4.1.1",
     "sqlite3": "^5.0.9",
     "ts-node": "^10.9.1",

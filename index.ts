@@ -38,9 +38,12 @@ let mentionList: Livestream[] = [];
 
 const PREFIX: string = '$';
 const POLLING_TIMER: number = 30000; //milliseconds
-const CLEAR_TIMER: number = 86400000;
+//const CLEAR_TIMER: number = 86400000;
+const TIMER: number = 30000;
 const NOTIFS_CHANNEL = "1017332176422961203";
 
+let timeLast = new Date().getDate();
+let timeNow = 1;
 let hiCount = 0;
 export let admin = 0;
 
@@ -64,12 +67,19 @@ client.on('ready', () => {
         const fetched = await channel.messages.fetch({limit: 99});
         channel.bulkDelete(fetched, true).catch((err) => console.log("All old messages deleted already"));
     }
-    clear();
 
     //Clears past 100 messages sent within the past 2 weeks in the notifs channel every 24 hours
     let clearInt = setInterval(async () =>{
-        clear();
-    }, CLEAR_TIMER);
+        timeNow = new Date().getDate();
+        if(timeLast == timeNow){
+            //Do nothing if it's still the same day
+        }
+        else{
+            //Clear notifs channel and update timeLast
+            clear();
+            timeLast = timeNow;
+        }
+    }, TIMER);
 
     //This interval is the heart of the stream polling functionality
     let mainInt = setInterval(async () => {
@@ -87,7 +97,7 @@ client.on('ready', () => {
                 pings += `<@${members[j]}> `;
             }
             //Pings the user with the livestream link
-            (client.channels.cache.get(NOTIFS_CHANNEL) as discord.TextChannel).send(pings + `${streamList[i].name} is live!\n${streamList[i].streamUrl}`);
+            (client.channels.cache.get(NOTIFS_CHANNEL) as discord.TextChannel).send(pings + `${streamList[i].name} is live on ${streamList[i].platform}!\n${streamList[i].streamUrl}`);
         }
     }, POLLING_TIMER);
 });
@@ -131,14 +141,14 @@ client.on('messageCreate', async (msg) => {
         //Add command that opts you into getting notifications whenever the selected streamer is live
         if (msg.content.toLowerCase() === `${PREFIX}add` || msg.content.toLowerCase() === `${PREFIX}a`) {
             //Gets the names of all streams in the DB
-            const sql = "SELECT name FROM streams";
+            const sql = "SELECT name, platform FROM streams";
             const tmp = await db.execute(sql);
             const streamNames = tmp[0];
 
             //Generates input prompt
             let prompt = "Reply with the selection that you'd like to get notifications from:\n`0` - Add new stream!\n";
             for (let i = 0; i < streamNames.length; i++) {
-                prompt += "`" + (i + 1) + "` - " + streamNames[i].name + "\n";
+                prompt += "`" + (i + 1) + "` - " + streamNames[i].name + " (" + (streamNames[i].platform == "youtube" ? "YouTube" : "Twitch") + ")\n";
             }
 
             //Only allows messages from the person who called the add command
