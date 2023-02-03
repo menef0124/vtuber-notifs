@@ -36,7 +36,7 @@ export async function pollStreams(): Promise<Livestream[]> {
                 //If the stream went offline
                 if (!isLive && status == 1) {
                     console.log(`${streams[i].name} is now offline`);
-                    sql = "UPDATE streams SET stillLive = ? WHERE name = ?";
+                    sql = "UPDATE streams SET stillLive = ? WHERE name = ? AND platform = ?";
                     db.execute(sql, [0, streams[i].name]);
                 }
             }).catch((e) =>{
