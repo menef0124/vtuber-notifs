@@ -20,24 +20,24 @@ export async function pollStreams(): Promise<Livestream[]> {
             const isLive = await checkIfLive(streams[i]).then((isLive) => {
                 //If the stream just went live
                 if (isLive && status == 0) {
-                    console.log(`${streams[i].name} is now live!`);
+                    console.log(`${streams[i].name} (${streams[i].platform}) is now live!`);
                     sql = "UPDATE streams SET stillLive = ? WHERE name = ? AND platform = ?";
                     db.execute(sql, [1, streams[i].name, streams[i].platform]);
                     streamsToReturn.push(streams[i]);
                 }
                 //If the stream ping was already sent out and the stream is still going
                 if (isLive && status == 1) {
-                    console.log(`${streams[i].name} is online`);
+                    console.log(`${streams[i].name} (${streams[i].platform}) is online`);
                 }
                 //If the stream is still offline
                 if(!isLive && status == 0){
-                    console.log(`${streams[i].name} is offline`);
+                    console.log(`${streams[i].name} (${streams[i].platform}) is offline`);
                 }
                 //If the stream went offline
                 if (!isLive && status == 1) {
-                    console.log(`${streams[i].name} is now offline`);
+                    console.log(`${streams[i].name} (${streams[i].platform}) is now offline`);
                     sql = "UPDATE streams SET stillLive = ? WHERE name = ? AND platform = ?";
-                    db.execute(sql, [0, streams[i].name]);
+                    db.execute(sql, [0, streams[i].name, streams[i].platform]);
                 }
             }).catch((e) =>{
                 console.log("There was an error:", e);

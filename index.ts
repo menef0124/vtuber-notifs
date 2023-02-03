@@ -118,7 +118,8 @@ client.on('messageCreate', async (msg) => {
         //Toggle admin mode
         if(msg.content.toLowerCase() === `${PREFIX}debug` || msg.content.toLowerCase() === `${PREFIX}d` && msg.author.id === "308629810085625878"){
             admin = admin === 0 ? 1 : 0;
-            msg.channel.send(`Debug mode is now ${admin === 0 ? "off!" : "on!"}`).then(msg => {setTimeout(() => msg.delete(), 10000)});
+            msg.channel.send(`Debug mode is now ${admin === 0 ? "off!" : "on!"}`).then(msg => {setTimeout(() => msg.delete().catch((err) => console.log("Message already deleted")), 10000)});
+            msg.delete().catch((err) => console.log("Message already deleted"));
 
         }
 
@@ -130,11 +131,13 @@ client.on('messageCreate', async (msg) => {
         //Help command for displaying all of the available commands
         if(msg.content.toLowerCase() === `${PREFIX}help` || msg.content.toLowerCase() === `${PREFIX}h`){
             msg.reply("Prefix for all commands: `$`\n`status` or `s` - Displays all streams that you're opted into notifications for.\n`add` or `a` - Lists all streamers in the database to opt into notifications for. You can also add new streams to the database.\n`remove` or `r` - Allows you to select a streamer to opt out of notifications for.");
+            msg.delete().catch((err) => console.log("Message already deleted"));
         }
 
         //Status command that lists the streaming status of all streams the that user has opted into notifs for
         if (msg.content.toLowerCase() === `${PREFIX}status` || msg.content.toLowerCase() === `${PREFIX}s`) {
-            msg.channel.send(await getStreamStatuses(msg.author.id)).then(msg => {setTimeout(() => msg.delete(), 20000)});
+            msg.channel.send(await getStreamStatuses(msg.author.id)).then(msg => {setTimeout(() => msg.delete().catch((err) => console.log("Message already deleted")), 20000)});
+            msg.delete().catch((err) => console.log("Message already deleted"));
         }
 
 
@@ -144,6 +147,8 @@ client.on('messageCreate', async (msg) => {
             const sql = "SELECT name, platform FROM streams";
             const tmp = await db.execute(sql);
             const streamNames = tmp[0];
+
+            
 
             //Generates input prompt
             let prompt = "Reply with the selection that you'd like to get notifications from:\n`0` - Add new stream!\n";
@@ -156,24 +161,27 @@ client.on('messageCreate', async (msg) => {
 
             msg.channel.send(prompt).then((m) => {
                 msg.channel.awaitMessages({ filter: filter, max: 1, time: 60000, errors: ['time'] }).then(async (selected) => {
-                    m.delete();
+                    m.delete().catch((err) => console.log("Message already deleted"));
                     //Gets inputted number 
                     let selection = selected.first()?.content;
+                    selected.last()?.delete().catch((err) => console.log("Message already deleted"));
                     if (typeof (selection) !== "undefined") {
                         if(selection == "0"){
                             msg.channel.send("What's the name of the streamer?").then((m) => {
                                 msg.channel.awaitMessages({filter: filter, max: 1, time: 60000, errors: ['time']}).then(async (name) => {
-                                    m.delete()
+                                    m.delete().catch((err) => console.log("Message already deleted"));
                                     let streamer = name.first()?.content;
+                                    name.last()?.delete();
                                     if(typeof(streamer) !== "undefined"){
                                         msg.channel.send("What's their stream URL?\n(For YouTube, the url format is https://www.youtube.com/channel/<channelID>/live and for Twitch it's https://www.twitch.tv/<channelName>").then((m) => {
                                             msg.channel.awaitMessages({filter: filter, max: 1, time:60000, errors: ['time']}).then(async (url) => {
-                                                m.delete();
+                                                m.delete().catch((err) => console.log("Message already deleted"));
                                                 let platform = url.first()?.content.includes("youtube") ? "youtube" : "twitch";
                                                 let streamUrl = url.first()?.content;
+                                                url.last()?.delete().catch((err) => console.log("Message already deleted"));
                                                 let sql = "INSERT INTO streams(name,platform,streamUrl,members,stillLive) VALUES (?,?,?,?,0)";
                                                 db.execute(sql, [streamer, platform, streamUrl, msg.author.id]);
-                                                msg.channel.send("✅ Success! " + streamer + " has been added and you will now get pings whenever they go live!").then(msg => {setTimeout(() => msg.delete(), 10000)});
+                                                msg.channel.send("✅ Success! " + streamer + " has been added and you will now get pings whenever they go live!").then(msg => {setTimeout(() => msg.delete().catch((err) => console.log("Message already deleted")), 10000)});
 
                                             });
                                             setTimeout(async () => await m.delete().catch((err) => console.log("Message already deleted")), 30000);
@@ -185,12 +193,12 @@ client.on('messageCreate', async (msg) => {
                         }
                         else{
                             //Only allows input that's within the number of streams in the db
-                            let streamName = (parseInt(selection) - 1) < streamNames.length ? streamNames[parseInt(selection) - 1].name : null;
+                            let streamer = (parseInt(selection) - 1) < streamNames.length ? streamNames[parseInt(selection) - 1] : null;
     
                             //If the input matches up with any of the streamers
-                            if (streamName) {
-                                let sql = "SELECT members FROM streams WHERE name = ?"
-                                let tmp = await db.execute(sql, [streamName]);
+                            if (streamer) {
+                                let sql = "SELECT members FROM streams WHERE name = ? AND platform = ?"
+                                let tmp = await db.execute(sql, [streamer.name, streamer.platform]);
                                 let members = tmp[0];
                                 let memArr = members[0].members.split(','); //Splits up the array to be able to add members to the array
                                 //If the author's id number isn't already opted in to the selected stream
@@ -204,11 +212,11 @@ client.on('messageCreate', async (msg) => {
                                     members = memArr.join(','); //Turns array back into a comma-separated list
     
                                     //Updates members list in the db
-                                    sql = "UPDATE streams SET members = ? WHERE name = ?";
-                                    db.execute(sql, [members, streamName]);
+                                    sql = "UPDATE streams SET members = ? WHERE name = ? AND platform = ?";
+                                    db.execute(sql, [members, streamer.name, streamer.platform]);
     
                                     //Confirmation message that the add command worked
-                                    msg.channel.send("✅ Success! You will now get pings whenever " + streamName + " is live!").then(msg => {setTimeout(() => msg.delete(), 10000)});
+                                    msg.channel.send("✅ Success! You will now get pings whenever " + streamer.name + " is live!").then(msg => {setTimeout(() => msg.delete(), 10000)});
                                 }
                                 //If author's user id is found in the selected stream's list of members already
                                 else {
@@ -225,12 +233,13 @@ client.on('messageCreate', async (msg) => {
                 });
                 setTimeout(async () => await m.delete().catch((err) => console.log("Message already deleted")), 30000);
             });
+            msg.delete().catch((err) => console.log("Message already deleted"));
         }
 
         //Remove command that opts the user out of notifications from a streamer
         if (msg.content.toLowerCase() === `${PREFIX}remove` || msg.content.toLowerCase() === `${PREFIX}r`) {
             mysql.escape(msg.author.id);
-            let sql = `SELECT name, members FROM streams WHERE members like '%${msg.author.id}%'`; //Only selects streams that the user is getting notifications from
+            let sql = `SELECT name, platform, members FROM streams WHERE members like '%${msg.author.id}%'`; //Only selects streams that the user is getting notifications from
             let tmp = await db.execute(sql);
             let streams = tmp[0];
 
@@ -238,7 +247,7 @@ client.on('messageCreate', async (msg) => {
             let prompt = "Reply with which stream you'd like to opt out of notifications for:\n";
 
             for (let i = 0; i < streams.length; i++) {
-                prompt += '`' + (i + 1) + '` - ' + streams[i].name + '\n';
+                prompt += '`' + (i + 1) + '` - ' + streams[i].name + " (" + (streams[i].platform == "youtube" ? "YouTube" : "Twitch") + ')\n';
             }
 
             let filter = (m: any) => m.author.id === msg.author.id;
@@ -249,14 +258,15 @@ client.on('messageCreate', async (msg) => {
                     m.delete();
                     //Gets inputted number 
                     let selection = selected.first()?.content;
+                    selected.last()?.delete().catch((err) => console.log("Message already deleted"));
                     if (typeof (selection) !== "undefined") {
                         //Only allows input that's within the number of streams in the user's subscriptions
-                        let streamName = (parseInt(selection) - 1) < streams.length ? streams[parseInt(selection) - 1].name : null;
+                        let streamer = (parseInt(selection) - 1) < streams.length ? streams[parseInt(selection) - 1] : null;
 
                         //If the input matches up with any of the streamers
-                        if (streamName) {
-                            sql = "SELECT members FROM streams WHERE name = ?"
-                            let tmp = await db.execute(sql, [streamName]);
+                        if (streamer) {
+                            sql = "SELECT members FROM streams WHERE name = ? AND platform = ?"
+                            let tmp = await db.execute(sql, [streamer.name, streamer.platform]);
                             let members = tmp[0];
                             let memArr = members[0].members.split(','); //Splits up the array to be able to remove members from the array
                             //If the author's id number is already opted in to the selected stream
@@ -264,37 +274,38 @@ client.on('messageCreate', async (msg) => {
                                 members = memArr.filter((mem: string) => mem != msg.author.id).join(','); //Removes member from list then turns array back into a comma-separated list
                                 if (members != "") {
                                     //Updates members list in the db
-                                    sql = "UPDATE streams SET members = ? WHERE name = ?";
-                                    db.execute(sql, [members, streamName]);
+                                    sql = "UPDATE streams SET members = ? WHERE name = ? AND platform = ?";
+                                    db.execute(sql, [members, streamer.name, streamer.platform]);
                                     //Confirmation message that the remove command worked
-                                    msg.channel.send("✅ Success! You will no longer get any pings whenever " + streamName + " is live!").then(msg => {setTimeout(() => msg.delete(), 10000)});
+                                    msg.channel.send("✅ Success! You will no longer get any pings whenever " + streamer.name + " is live!").then(msg => {setTimeout(() => msg.delete().catch((err) => console.log("Message already deleted")), 10000)});
                                 }
                                 else {
-                                    sql = "UPDATE streams SET members = ? WHERE name = ?";
-                                    db.execute(sql, [members, streamName]);
-                                    msg.channel.send("✅ Success! You will no longer get any pings whenever " + streamName + " is live!\nAll members have opted out of pings for " + streamName + ", no longer sending pings for their stream.").then(msg => {setTimeout(() => msg.delete(), 10000)});
+                                    sql = "UPDATE streams SET members = ? WHERE name = ? AND platform = ?";
+                                    db.execute(sql, [members, streamer.name, streamer.platform]);
+                                    msg.channel.send("✅ Success! You will no longer get any pings whenever " + streamer.name + " is live!\nAll members have opted out of pings for " + streamer.name + ", no longer sending pings for their stream.").then(msg => {setTimeout(() => msg.delete().catch((err) => console.log("Message already deleted")), 10000)});
                                 }
                             }
                             //If author's user id is found in the selected stream's list of members already
                             else {
-                                msg.channel.send("Invalid input!").then(msg => {setTimeout(() => msg.delete(), 10000)});
+                                msg.channel.send("Invalid input!").then(msg => {setTimeout(() => msg.delete().catch((err) => console.log("Message already deleted")), 10000)});
                             }
 
                         }
                         else {
                             //If input is not in the range of the number of 
-                            msg.channel.send("Invalid input!").then(msg => {setTimeout(() => msg.delete(), 10000)});
+                            msg.channel.send("Invalid input!").then(msg => {setTimeout(() => msg.delete().catch((err) => console.log("Message already deleted")), 10000)});
                         }
                     }
                 });
                 setTimeout(async () => await m.delete().catch((err) => console.log("Message already deleted")), 30000);
             });
+            msg.delete().catch((err) => console.log("Message already deleted"));
         }
 
 
         //Silly commands
         if (msg.content.toLowerCase() === 'ping') {
-            msg.reply("pong").then(msg => {setTimeout(() => msg.delete(), 10000)});
+            msg.reply("pong").then(msg => {setTimeout(() => msg.delete().catch((err) => console.log("Message already deleted")), 10000)});
         }
 
     }
